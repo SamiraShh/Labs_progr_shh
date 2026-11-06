@@ -2,7 +2,7 @@ import math
 
 print("Лабораторная работа 2 (Вариант  8)\n")
 
-# Функция ввода чисел с проверкой ошибок
+# Функция ввода чисел с проверкой ошибок (валидация)
 def vvod_chis(mes, min_znach, max_znach):
     ok = True
     result = 0
@@ -17,7 +17,7 @@ def vvod_chis(mes, min_znach, max_znach):
             print("Ошибка: введите число, а не текст")
     return result
 
-# Меню выбора
+# Меню выбора (с валидацией)
 f_menu = True
 menu = 0
 while f_menu:

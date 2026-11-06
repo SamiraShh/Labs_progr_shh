@@ -1,12 +1,14 @@
+"""Журнал ошибок ввода (сохраняет сообщения в памяти и дублирует в файл)."""
+
 from __future__ import annotations
 import datetime
-from connstans import LOG_FILE
+from constans import LOG_FILE
 
 _entries: list[str] = []
 
 
 def log_error(message: str) -> None:
-    "Записать собщение по ошибке ввода."
+    """Добавить запись об ошибке в память и файл с меткой времени."""
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     entry = f"[{ts}] {message}"
     _entries.append(entry)
@@ -16,10 +18,12 @@ def log_error(message: str) -> None:
     except OSError:
         pass
 
+
 def get_entries() -> list[str]:
-    "Вернуть копию журнала ошибок."
+    """Вернуть копию журнала ошибок из памяти."""
     return list(_entries)
 
+
 def clear() -> None:
-    "Очистить журнал (используется в тестах)."
+    """Очистить журнал ошибок (используется в тестах)."""
     _entries.clear()
