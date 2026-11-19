@@ -1,22 +1,30 @@
 """Модуль вычисления скользящих средних (SMA, CMA, EMA)."""
 
 from __future__ import annotations
+import time
+from collections import deque
 from typing import Sequence, List
 
 
-def _check_window(window: int, n: int) -> None:
+def check_window(window: int, n: int) -> None:
     """Проверка корректности размера окна."""
+    if isinstance(window, bool) or not isinstance(window, int):
+        raise ValueError(f"window должно быть целым числом (получено: {window!r})")
     if window < 1:
-        raise ValueError(f"Размер окна должен быть >= 1 (получено: {window})")
+        raise ValueError(f"window должно быть >= 1 (получено: {window})")
+    if n <= 0:
+        raise ValueError("Ряд пуст: вычисление скользящего окна невозможно")
     if window > n:
-        raise ValueError(f"Размер окна ({window}) больше длины ряда ({n})")
+        raise ValueError(
+            f"window ({window}) не может превышать длину ряда ({n})"
+        )
 
 
 def simple_moving_average(data: Sequence[float], window: int) -> List[float]:
     """Простая скользящая средняя (SMA) через эффективную бегущую сумму O(n)."""
     if not data:
         return []
-    _check_window(window, len(data))
+    check_window(window, len(data))
 
     running = sum(data[:window])
     result = [running / window]
@@ -25,6 +33,22 @@ def simple_moving_average(data: Sequence[float], window: int) -> List[float]:
         running += data[i] - data[i - window]
         result.append(running / window)
 
+    return result
+
+
+def simple_moving_average_deque(data: Sequence[float], window: int) -> List[float]:
+    """SMA с использованием deque (двусторонней очереди)."""
+    check_window(window, len(data))
+    result = []
+    d = deque()
+    running_sum = 0.0
+    for x in data:
+        d.append(x)
+        running_sum += x
+        if len(d) > window: 
+            running_sum -= d.popleft()
+        if len(d) == window:
+            result.append(running_sum / window)
     return result
 
 
@@ -51,3 +75,24 @@ def exponential_moving_average(data: Sequence[float], alpha: float) -> List[floa
         val = alpha * data[i] + (1 - alpha) * ema[-1]
         ema.append(val)
     return ema
+
+
+def benchmark_moving_average(
+    data: Sequence[float], window: int, repeats: int = 1000
+) -> dict[str, float]:
+    """Замеряет среднее время выполнения SMA для list и deque в секундах."""
+    check_window(window, len(data))
+    if repeats < 1:
+        raise ValueError(f"repeats должно быть >= 1 (получено: {repeats})")
+
+    t0 = time.perf_counter()
+    for _ in range(repeats):
+        simple_moving_average(data, window)
+    t_list = (time.perf_counter() - t0) / repeats
+
+    t0 = time.perf_counter()
+    for _ in range(repeats):
+        simple_moving_average_deque(data, window)
+    t_deque = (time.perf_counter() - t0) / repeats
+
+    return {"list": t_list, "deque": t_deque}

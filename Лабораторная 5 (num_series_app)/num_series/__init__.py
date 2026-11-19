@@ -7,7 +7,10 @@ from .moving_average import (
     simple_moving_average,
     centered_moving_average,
     exponential_moving_average,
+    benchmark_moving_average,
 )
+from .io_json import save_series_json, load_series_json
+from .io_file import load_series_txt, load_series_csv, load_series_auto
 
 
 __all__ = [
@@ -16,7 +19,14 @@ __all__ = [
     "simple_moving_average",                                 # Скользящие средние
     "centered_moving_average",
     "exponential_moving_average",
+    "save_series_json", "load_series_json",                  # Ввод-вывод
+    "load_series_txt", "load_series_csv", "load_series_auto"
+    "simple_moving_average",                                 # Из deque
+    "simple_moving_average_deque",
+    "centered_moving_average",
+    "exponential_moving_average",
+    "benchmark_moving_average"
 ]
 
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
