@@ -31,9 +31,26 @@ def spread(data: Sequence[float]) -> float:
     _ensure_not_empty(data)
     return float(max(data) - min(data))
 
+# Вариант 8
+def trimmed_mean(data: Sequence[float], proportion: float = 0.1) -> float:
+    """Устойчивая статистика: усечённое среднее (по умолчанию 10% с каждого конца)."""
+    _ensure_not_empty(data)
+    if not (0.0 <= proportion < 0.5):
+        raise ValueError(
+            f"proportion должно быть в диапазоне [0.0, 0.5) (получено: {proportion})"
+        )
+    s = sorted(data)
+    k = int(len(s) * proportion)
+    if k == 0:
+        return mean(data)
+    trimmed = s[k : len(s) - k]
+    if not trimmed:
+        return mean(data)
+    return sum(trimmed) / len(trimmed)
+
 
 def summarize(data: Sequence[float]) -> Dict[str, float]:
-    """Сводный отчёт: count, mean, median, spread, min, max."""
+    """Сводный отчёт: count, mean, median, spread, min, max, trimmed_mean_10."""
     _ensure_not_empty(data)
     return {
         "count": len(data),
@@ -42,4 +59,5 @@ def summarize(data: Sequence[float]) -> Dict[str, float]:
         "spread": spread(data),
         "min": float(min(data)),
         "max": float(max(data)),
+        "trimmed_mean_10": trimmed_mean(data, proportion=0.1),
     }

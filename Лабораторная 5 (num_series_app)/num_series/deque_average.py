@@ -1,9 +1,12 @@
 """Скользящие средние на основе collections.deque."""
+# Отдельный модуль, не заменяющий moving_average.py:
+# - сохраняет публичный контракт (Sequence[float] -> list[float]);
+# - реализует SMA, CMA и EMA через deque (maxlen=...);
+# - удобен для потоковой обработки и для сравнения с «индексной» версией.
 
 from __future__ import annotations
-import math
 from collections import deque
-from typing import Deque, Iterable, List, Sequence
+from typing import Deque, List, Sequence
 
 
 # Валидация
@@ -22,7 +25,7 @@ def _check_window(window: int, n: int) -> None:
 
 
 def _check_alpha(alpha: float) -> None:
-    if not (0 < alpha <= 1):
+    if isinstance(alpha, bool) or not (0.0 < alpha <= 1.0):
         raise ValueError(f"alpha должен быть в (0, 1], получено: {alpha}")
     
 
@@ -42,8 +45,8 @@ def simple_moving_average_deque(
     for i, x in enumerate(data):
         if len(buf) == window:
             running -= buf[0]
-        buf.append(x)
-        running += x
+        buf.append(float(x))
+        running += float(x)
         if i >= window - 1:
             result.append(running / window)
     return result
@@ -68,30 +71,31 @@ def centered_moving_average_deque(
     for x in data:
         if len(buf) == window:
             running -= buf[0]
-        buf.append(x)
-        running += x
+        buf.append(float(x))
+        running += float(x)
         if len(buf) == window:
             result.append(running / window)
+    return result
+
 
 # Экспоненциальная скользящая средняя (EMA) через deque
 def exponential_moving_average_deque(
     data: Sequence[float],
     alpha: float,
 ) -> List[float]:
-    """EMA: EMA[0] = data[0];
-    EMA[i] = alpha*data[i] + (1-alpha)*EMA[i-1]."""
-
+    """EMA: EMA[0] = data[0]; EMA[i] = alpha*data[i] + (1-alpha)*EMA[i-1]."""
     _ensure_not_empty(data)
     _check_alpha(alpha)
 
     buf: Deque[float] = deque(maxlen=1)
     prev: float = float(data[0])
     result: List[float] = [prev]
+    buf.append(prev)
 
     for x in data[1:]:
-        prev = alpha * x + (1.0 - alpha) * prev
+        prev = alpha * float(x) + (1.0 - alpha) * prev
         result.append(prev)
-        buf.append(prev) # ring-buffer последнего значения (для потокового API)
+        buf.append(prev)    # ring-buffer последнего значения (для потокового API)
     return result
 
 # Публичный список того, что отдаёт модуль

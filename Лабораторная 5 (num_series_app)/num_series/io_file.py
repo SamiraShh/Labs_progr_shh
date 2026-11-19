@@ -1,3 +1,5 @@
+"""Чтение числовых рядов из простых текстовых файлов (.txt, .csv, .tsv, .dat)."""
+
 from __future__ import annotations
 from pathlib import Path
 import re

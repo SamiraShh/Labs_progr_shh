@@ -21,11 +21,11 @@ def _validate_n(n: int) -> None:
 
 
 def random_series(
-        n: int,
-        low: float = -100.0,
-        high: float = 100.0,
-        seed: Optional[int] = None,
-    ) -> List[float]:
+    n: int,
+    low: float = -100.0,
+    high: float = 100.0,
+    seed: Optional[int] = None,
+) -> List[float]:
     """Ряд из n равномерно распределённых случайных чисел на [low, high]."""
     _validate_n(n)
     if low >= high:
@@ -35,12 +35,12 @@ def random_series(
 
 
 def sine_series(
-        n: int,
-        amplitude: float = 1.0,
-        frequency: float = 1.0,
-        noise: float = 0.0,
-        seed: Optional[int] = None,
-    ) -> List[float]:
+    n: int,
+    amplitude: float = 1.0,
+    frequency: float = 1.0,
+    noise: float = 0.0,
+    seed: Optional[int] = None,
+) -> List[float]:
     """Синусоидальный ряд с аддитивным шумом."""
     _validate_n(n)
     rng = random.Random(seed)
@@ -52,12 +52,12 @@ def sine_series(
 
 
 def trend_series(
-        n: int,
-        start: float = 0.0,
-        step: float = 1.0,
-        noise: float = 0.0,
-        seed: Optional[int] = None,
-    ) -> List[float]:
+    n: int,
+    start: float = 0.0,
+    step: float = 1.0,
+    noise: float = 0.0,
+    seed: Optional[int] = None,
+) -> List[float]:
     """Линейный тренд с добавлением шума."""
     _validate_n(n)
     rng = random.Random(seed)
@@ -65,3 +65,39 @@ def trend_series(
         start + step * i + (rng.uniform(-noise, noise) if noise else 0.0)
         for i in range(n)
     ]
+
+
+# Вариант 8
+def variant8_series(
+    n: int = 1500,
+    noise_scale: float = 1.0,
+    outlier_factor: float = 10.0,
+    seed: Optional[int] = None,
+) -> List[float]:
+    """Вариант 8: ряд из n (по умолчанию 1500) чисел — шум + два выброса
+    (значения примерно в 10 раз больше типичных)."""
+    _validate_n(n)
+    if noise_scale <= 0:
+        raise ValueError(f"noise_scale должно быть > 0 (получено: {noise_scale})")
+    if outlier_factor <= 1.0:
+        raise ValueError(f"outlier_factor должно быть > 1.0 (получено: {outlier_factor})")
+
+    rng = random.Random(seed)
+    series = [rng.gauss(0.0, noise_scale) for _ in range(n)]
+
+    # Типичное значение ряда (среднее абсолютное отклонение от 0 / масштаб шума)
+    typical = sum(abs(x) for x in series) / len(series)
+    if typical == 0.0:
+        typical = noise_scale
+
+    # Добавляем два выброса в 10 раз больше типичных значений
+    idx1 = n // 4
+    idx2 = (3 * n) // 4
+    if idx2 == idx1 and n >= 2:
+        idx2 = min(n - 1, idx1 + 1)
+
+    series[idx1] = float(outlier_factor * typical)
+    if n >= 2:
+        series[idx2] = float(-outlier_factor * typical)
+
+    return series

@@ -1,8 +1,10 @@
+"""Сохранение и чтение числовых рядов в формате JSON."""
+
 from __future__ import annotations
 from datetime import datetime
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, overload
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 PathLike = Union[str, Path]
 
@@ -11,7 +13,7 @@ def save_series_json(
     data: List[float],
     path: PathLike,
     meta: Optional[Dict[str, Any]] = None,
-    indent: int = 2,
+    indent: Optional[int] = 2,
 ) -> None:
     """Сохраняет числовой ряд в JSON-файл."""
     if not data:
