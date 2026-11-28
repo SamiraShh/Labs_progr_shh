@@ -83,12 +83,12 @@ def variant8_series(
         raise ValueError(f"outlier_factor должно быть > 1.0 (получено: {outlier_factor})")
 
     rng = random.Random(seed)
-    series = [rng.gauss(0.0, noise_scale) for _ in range(n)]
+    series = [float(rng.gauss(0.0, noise_scale)) for _ in range(n)]
 
     # Типичное значение ряда (среднее абсолютное отклонение от 0 / масштаб шума)
     typical = sum(abs(x) for x in series) / len(series)
     if typical == 0.0:
-        typical = noise_scale
+        typical = float(noise_scale)
 
     # Добавляем два выброса в 10 раз больше типичных значений
     idx1 = n // 4

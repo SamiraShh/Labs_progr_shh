@@ -80,7 +80,7 @@ def exponential_moving_average(data: Sequence[float], alpha: float) -> List[floa
         raise ValueError("Ряд пуст: расчёт EMA невозможен")
     _check_alpha(alpha)
 
-    ema = [data[0]]
+    ema = [float(data[0])]
     for i in range(1, len(data)):
         val = alpha * data[i] + (1 - alpha) * ema[-1]
         ema.append(val)
@@ -94,20 +94,14 @@ def median_moving_average(data: Sequence[float], window: int) -> List[float]:
         raise ValueError("Ряд пуст: расчёт скользящей медианы невозможен")
     check_window(window, len(data))
 
-    buf: deque[float] = deque(maxlen=window)
     result: List[float] = []
-
-    for x in data:
-        buf.append(float(x))
-        if len(buf) == window:
-            s = sorted(buf)
-            mid = window // 2
-            if window % 2 == 1:
-                med = float(s[mid])
-            else:
-                med = (s[mid - 1] + s[mid]) / 2.0
-            result.append(med)
-
+    half = window // 2
+    for i in range(len(data) - window + 1):
+        s = sorted(data[i : i + window])
+        if window % 2 == 1:
+            result.append(float(s[half]))
+        else:
+            result.append((float(s[half - 1]) + float(s[half])) / 2.0)
     return result
 
 

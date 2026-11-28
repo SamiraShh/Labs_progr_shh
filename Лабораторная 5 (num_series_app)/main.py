@@ -11,6 +11,7 @@ from num_series import (
     sine_series,
     trend_series,
     variant8_series,
+    trimmed_mean,
     summarize,
     simple_moving_average,
     simple_moving_average_deque,
@@ -101,11 +102,11 @@ def build_parser() -> argparse.ArgumentParser:
     # Сохранение и экспорт
     parser.add_argument("--save", metavar="PATH", help="сохранить ряд в JSON-файл")
     parser.add_argument("--export", metavar="FILE", help="экспорт в CSV (i, value)")
-    parser.add_argument("--json", action="store_true", help="вывести результаты анализа в формате JSON")
 
     # Анализ и сглаживание
     parser.add_argument("--window", type=int, default=3, help="размер окна для скользящей средней")
     parser.add_argument("--alpha", type=float, default=0.3, help="коэффициент сглаживания для EMA, 0 < alpha <= 1")
+    parser.add_argument("--trim", type=float, default=0.1, help="доля усечения с каждого конца для усечённого среднего [0, 0.5)")
     parser.add_argument("--benchmark", action="store_true", help="замерить время выполнения SMA для list и deque")
     
     return parser
@@ -146,6 +147,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     # --- 3. Анализ ---
     try:
         stats = summarize(data)
+        trim_val = trimmed_mean(data, args.trim)
         sma = simple_moving_average(data, args.window)
         sma_dq = simple_moving_average_deque(data, args.window)
         med_ma = median_moving_average(data, args.window)
@@ -160,19 +162,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1
     
     # --- 4. Вывод ---
-    if args.json:
-        payload = {
-            "source": source,
-            "stats": stats,
-            "sma": sma,
-            "sma_deque": sma_dq,
-            "median_moving_average": med_ma,
-            "ema": ema,
-            "cma": cma,
-        }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return 0
-
     print_header(source, len(data))
     print_stats(stats)
     parity_label = "чётное" if args.window % 2 == 0 else "нечётное"
@@ -186,24 +175,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         print_series(f"Центрированное МА (window={args.window})", cma)
 
     if args.benchmark:
-        try:
+            print("-" * 60)
+            print("Замер времени выполнения SMA (среднее за 1000 повторов):")
             timings = benchmark_moving_average(data, args.window, repeats=1000)
-        except ValueError as err:
-            print(f"Ошибка бенчмарка: {err}", file=sys.stderr)
-            return 1
-        print("-" * 60)
-        print("Замер времени выполнения SMA (среднее за 1000 повторов):")
-        print(f"  list : {timings['list']:.8f} c")
-        print(f"  deque: {timings['deque']:.8f} c")
-        if timings["deque"] > 0:
-            print(f"  отношение (list/deque): {timings['list'] / timings['deque']:.2f}")
+            print(f"  list: {timings['list']:.8f} c")
+            print(f"  deque: {timings['deque']:.8f} c")
+            print(f"  отношение (list/deque): {timings['list']/timings['deque']:.2f}")
 
     print_footer()
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
 
 
 if __name__ == "__main__":

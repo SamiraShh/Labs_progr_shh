@@ -90,7 +90,6 @@ def exponential_moving_average_deque(
     buf: Deque[float] = deque(maxlen=1)
     prev: float = float(data[0])
     result: List[float] = [prev]
-    buf.append(prev)
 
     for x in data[1:]:
         prev = alpha * float(x) + (1.0 - alpha) * prev
